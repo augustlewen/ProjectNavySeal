@@ -8,27 +8,30 @@ public class HarpoonController : MonoBehaviour
 {
     public float force;
     public float maxForce;
-    private bool isInHand = true;
-    private bool isChargingThrow;
-    private bool hasHit;
-    private Vector3 startPosition;
-    private Vector2 direction;
+
+    [System.NonSerialized] public bool hasHit;
+    [System.NonSerialized] public bool isInHand = true;
+    [System.NonSerialized] public bool isChargingThrow;
     
+    [System.NonSerialized] public Vector3 startPosition;
+    [System.NonSerialized] public Vector2 direction;
 
-    private Rigidbody2D myRigidbody;
+    [System.NonSerialized] public Rigidbody2D myRigidbody;
 
+    private GameObject seal;
+    public LineRenderer linePrefab;
 
     private void Start()
     {
         startPosition = transform.position;
 
         myRigidbody = GetComponent<Rigidbody2D>();
+        seal = GameObject.FindGameObjectWithTag("Seal");
     }
 
     private void Update()
     {
         Rotate_Harpoon();
-        Throw_Harpoon();
         Airborne();
     }
 
@@ -36,6 +39,9 @@ public class HarpoonController : MonoBehaviour
     {
         if (isInHand && isChargingThrow == false)
         {
+
+            transform.position = new Vector2(seal.transform.position.x + 0.05f, seal.transform.position.y - 0.13f);
+
             //Get the screen position of the object
             Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
 
@@ -47,44 +53,31 @@ public class HarpoonController : MonoBehaviour
         }
     }
 
-    private void Throw_Harpoon()
-    {
-        //if(chargingThrow == false)
-        if (Input.GetButton("Throw"))
-        {
-            if(force < maxForce)
-            {
-                isChargingThrow = true;
-                force += Mathf.Lerp(0f, maxForce, 0.002f);
-                transform.position = Vector3.Lerp(transform.position, startPosition - transform.right, 0.002f);
-            }
-        }
-
-        if (Input.GetButtonUp("Throw"))
-        {
-            isChargingThrow = false;
-            isInHand = false;
-            
-            myRigidbody.AddForce(transform.right * force);
-            myRigidbody.gravityScale = 0.9f;
-        }
-    }
-
     private void Airborne()
     {
         if(isInHand == false && hasHit == false)
         {
+            //Get Angle of harpoon based on it's current direction
             direction = myRigidbody.velocity;
-
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+            //Draw Line
+            linePrefab.enabled = true;
+            linePrefab.SetPosition(0, transform.position);
+            linePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y) );
         }
     }
 
-    void OnCollisionEnter2D(Collision2D other)
+    void OnCollisionEnter2D(Collision2D wall)
     {
-        hasHit = true;
-        myRigidbody.velocity = Vector2.zero;
-        myRigidbody.isKinematic = true;
+        if(isInHand == false && wall.gameObject.transform.CompareTag("Wall"))
+        {
+            hasHit = true;
+
+            //Stop Harpoon movement
+            myRigidbody.velocity = Vector2.zero;
+            myRigidbody.isKinematic = true;
+        }
     }
 }
