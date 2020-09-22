@@ -4,43 +4,48 @@ using UnityEngine;
 
 public class SealMovement : MonoBehaviour
 {
+    public float pullForce;
+    public float moveSpeed;
+
     private GameObject harpoon;
     private HarpoonController harpoonScript;
-    private Rigidbody2D myRigidbody;
+    public Rigidbody2D myRigidbody;
 
-    private Vector3 myStartPosition;
+    private Vector3 StartPosition;
 
     private void Start()
     {
-        myStartPosition = transform.position;
-
         harpoon = GameObject.FindGameObjectWithTag("Harpoon");
         harpoonScript = harpoon.GetComponent<HarpoonController>();
 
         myRigidbody = GetComponent<Rigidbody2D>();
+
+        StartPosition = transform.position;
     }
 
 
     private void Update()
     {
         Harpoon_Pull();
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -10f));
+        if (mousePosition.x < transform.position.x)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
+
+        }
+        else
+            transform.localScale = new Vector3(1, 1, 1);
+
     }
 
     private void Harpoon_Pull()
     {
         if (harpoonScript.hasHit)
         {
-            //Vector3 positionToMoveTowards = Vector3.zero;
-            //Vector3 direction = Vector3.zero;
+            //myRigidbody.velocity = harpoon.transform.position - myStartPosition;
+            myRigidbody.AddForce(harpoon.transform.position - StartPosition * pullForce, ForceMode2D.Impulse);
 
-            //if (positionToMoveTowards == Vector3.zero)
-            //{
-            //    positionToMoveTowards = harpoon.transform.position;
-            //    direction = (this.transform.position - harpoon.transform.position).normalized;
-            //}
-
-            myRigidbody.velocity = transform.position - harpoon.transform.position;
-
+            harpoonScript.hasHit = false;
         }
     }
 }

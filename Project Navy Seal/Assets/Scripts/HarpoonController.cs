@@ -12,7 +12,8 @@ public class HarpoonController : MonoBehaviour
     [System.NonSerialized] public bool hasHit;
     [System.NonSerialized] public bool isInHand = true;
     [System.NonSerialized] public bool isChargingThrow;
-    
+    [System.NonSerialized] public bool isInvalidArea;
+
     [System.NonSerialized] public Vector3 startPosition;
     [System.NonSerialized] public Vector2 direction;
 
@@ -33,14 +34,18 @@ public class HarpoonController : MonoBehaviour
     {
         Rotate_Harpoon();
         Airborne();
+
+        linePrefab.SetPosition(0, transform.position);
+        linePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y));
     }
 
     private void Rotate_Harpoon()
     {
-        if (isInHand && isChargingThrow == false)
+        if (isInHand && !isChargingThrow)
         {
-
             transform.position = new Vector2(seal.transform.position.x + 0.05f, seal.transform.position.y - 0.13f);
+            startPosition = transform.position;
+
 
             //Get the screen position of the object
             Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
@@ -55,29 +60,51 @@ public class HarpoonController : MonoBehaviour
 
     private void Airborne()
     {
-        if(isInHand == false && hasHit == false)
+        if(!isInHand && !hasHit)
         {
             //Get Angle of harpoon based on it's current direction
             direction = myRigidbody.velocity;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
-            //Draw Line
-            linePrefab.enabled = true;
-            linePrefab.SetPosition(0, transform.position);
-            linePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y) );
         }
     }
 
+
+
+
     void OnCollisionEnter2D(Collision2D wall)
     {
-        if(isInHand == false && wall.gameObject.transform.CompareTag("Wall"))
+        if(!isInHand && wall.gameObject.transform.CompareTag("Wall"))
         {
             hasHit = true;
-
+            
             //Stop Harpoon movement
             myRigidbody.velocity = Vector2.zero;
             myRigidbody.isKinematic = true;
+        }
+
+        
+    }
+
+
+
+
+
+
+    private void OnTriggerEnter2D(Collider2D area)
+    {
+        if (area.gameObject.transform.CompareTag("InvalidArea"))
+        {
+            isInvalidArea = true;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D area)
+    {
+        if (area.gameObject.transform.CompareTag("InvalidArea"))
+        {
+            isInvalidArea = false;
         }
     }
 }
