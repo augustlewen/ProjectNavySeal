@@ -39,6 +39,8 @@ public class InputController : MonoBehaviour
                 //Hold down Throw button to build up force
                 if (Input.GetButton("Throw"))
                 {
+                    sealMovement.myRigidbody.velocity = new Vector2(0f, sealMovement.myRigidbody.velocity.y);
+
                     if (harpoonScript.force < harpoonScript.maxForce)
                     {
                         harpoonScript.isChargingThrow = true;
@@ -92,23 +94,13 @@ public class InputController : MonoBehaviour
 
     private void Movement()
     {
-        if(!harpoonScript.isChargingThrow && harpoonScript.isInHand)
+        if(!harpoonScript.isChargingThrow && harpoonScript.isInHand && sealMovement.isGrounded)
         {
+            
             float horizontal = Input.GetAxis("Horizontal");
 
-            
 
             sealMovement.myRigidbody.velocity = new Vector2(sealMovement.moveSpeed * horizontal, sealMovement.myRigidbody.velocity.y);
-
-
-            //if (Input.GetAxis("Horizontal") > 0f)
-            //    sealMovement.myRigidbody.velocity = new Vector2(sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
-
-            //else if (Input.GetAxis("Horizontal") < 0f)
-            //    sealMovement.myRigidbody.velocity = new Vector2(-sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
-
-            //else if (Input.GetAxis("Horizontal") == 0f)
-
         }
     }
 }

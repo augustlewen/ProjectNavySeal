@@ -37,9 +37,12 @@ public class SealMovement : MonoBehaviour
     {
         if (harpoonScript.hasHit)
         {
-            Vector2 directionForce = (harpoon.transform.position - transform.position);
+            float distance = Vector2.Distance(harpoon.transform.position, transform.position);
 
-            myRigidbody.AddForce(directionForce * pullForce, ForceMode2D.Impulse);
+            Vector2 directionForce = (harpoon.transform.position - transform.position).normalized;
+
+            if(distance > 1.5)
+                myRigidbody.AddForce(directionForce * pullForce, ForceMode2D.Impulse);
 
             harpoonScript.hasHit = false;
         }
@@ -60,11 +63,21 @@ public class SealMovement : MonoBehaviour
 
 
     //Check if Seal is touching the ground
+    private void OnCollisionStay2D(Collision2D ground)
+    {
+        if (ground.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        {
+            isGrounded = true;
+        }
+    }
     private void OnCollisionEnter2D(Collision2D ground)
     {
         if (ground.gameObject.layer == LayerMask.NameToLayer("Ground"))
-            isGrounded = true;
+        {
+            myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
+        }
     }
+
     private void OnCollisionExit2D(Collision2D ground)
     {
         if (ground.gameObject.layer == LayerMask.NameToLayer("Ground"))
