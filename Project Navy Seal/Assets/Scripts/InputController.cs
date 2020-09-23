@@ -33,9 +33,8 @@ public class InputController : MonoBehaviour
         if(harpoonScript.isInHand)
         {
 
-            if(!harpoonScript.isInvalidArea)
+            if(!harpoonScript.isInvalidArea && sealMovement.isGrounded)
             {
-
 
                 //Hold down Throw button to build up force
                 if (Input.GetButton("Throw"))
@@ -46,6 +45,7 @@ public class InputController : MonoBehaviour
 
                         //Builds up Force over time
                         harpoonScript.force += Mathf.Lerp(0f, harpoonScript.maxForce, 0.002f);
+
                         harpoon.transform.position = Vector3.Lerp(harpoon.transform.position, harpoonScript.startPosition - harpoon.transform.right / 2.5f, 0.002f);
                     }
                 }
@@ -55,6 +55,7 @@ public class InputController : MonoBehaviour
                 {
                     harpoonScript.isChargingThrow = false;
                     harpoonScript.isInHand = false;
+                    harpoonScript.isAirborne = true;
 
                     //Calculate Force
                     harpoonScript.myRigidbody.AddForce(harpoon.transform.right * harpoonScript.force);
@@ -80,7 +81,7 @@ public class InputController : MonoBehaviour
                 harpoonScript.startPosition = transform.position;
 
                 harpoonScript.force = 0f;
-                harpoonScript.linePrefab.enabled = true;
+                harpoonScript.ropePrefab.enabled = true;
                 harpoonScript.myRigidbody.isKinematic = false;
                 harpoonScript.myRigidbody.gravityScale = 0f;
 
@@ -93,16 +94,20 @@ public class InputController : MonoBehaviour
     {
         if(!harpoonScript.isChargingThrow && harpoonScript.isInHand)
         {
-            if(Input.GetAxis("Horizontal") > 0f)
-                sealMovement.myRigidbody.velocity = new Vector2(sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
+            float horizontal = Input.GetAxis("Horizontal");
 
-            else if (Input.GetAxis("Horizontal") < 0f)
-                sealMovement.myRigidbody.velocity = new Vector2(-sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
+            
+
+            sealMovement.myRigidbody.velocity = new Vector2(sealMovement.moveSpeed * horizontal, sealMovement.myRigidbody.velocity.y);
 
 
+            //if (Input.GetAxis("Horizontal") > 0f)
+            //    sealMovement.myRigidbody.velocity = new Vector2(sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
 
-            if (Input.GetAxis("Horizontal") == 0f)
-                sealMovement.myRigidbody.velocity = Vector2.zero;
+            //else if (Input.GetAxis("Horizontal") < 0f)
+            //    sealMovement.myRigidbody.velocity = new Vector2(-sealMovement.moveSpeed, sealMovement.myRigidbody.velocity.y);
+
+            //else if (Input.GetAxis("Horizontal") == 0f)
 
         }
     }

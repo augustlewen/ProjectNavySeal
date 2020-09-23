@@ -11,6 +11,7 @@ public class HarpoonController : MonoBehaviour
 
     [System.NonSerialized] public bool hasHit;
     [System.NonSerialized] public bool isInHand = true;
+    [System.NonSerialized] public bool isAirborne;
     [System.NonSerialized] public bool isChargingThrow;
     [System.NonSerialized] public bool isInvalidArea;
 
@@ -20,7 +21,7 @@ public class HarpoonController : MonoBehaviour
     [System.NonSerialized] public Rigidbody2D myRigidbody;
 
     private GameObject seal;
-    public LineRenderer linePrefab;
+    public LineRenderer ropePrefab;
 
     private void Start()
     {
@@ -35,10 +36,14 @@ public class HarpoonController : MonoBehaviour
         Rotate_Harpoon();
         Airborne();
 
-        linePrefab.SetPosition(0, transform.position);
-        linePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y));
+        //Draw Rope
+        ropePrefab.SetPosition(0, transform.position);
+        ropePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y));
     }
 
+
+
+    //When harpoon is in hand, it will rotate in the direction of the mouse position
     private void Rotate_Harpoon()
     {
         if (isInHand && !isChargingThrow)
@@ -58,53 +63,50 @@ public class HarpoonController : MonoBehaviour
         }
     }
 
+    //Change the Angle of the harpoon while airborne
     private void Airborne()
     {
-        if(!isInHand && !hasHit)
+        if(isAirborne)
         {
             //Get Angle of harpoon based on it's current direction
             direction = myRigidbody.velocity;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-
         }
     }
 
 
 
-
+    //When the harpoon hits the wall, it sticks
     void OnCollisionEnter2D(Collision2D wall)
     {
-        if(!isInHand && wall.gameObject.transform.CompareTag("Wall"))
+        if (!isInHand && wall.gameObject.transform.CompareTag("Wall"))
         {
-            hasHit = true;
-            
+            isAirborne = false;
+
             //Stop Harpoon movement
             myRigidbody.velocity = Vector2.zero;
             myRigidbody.isKinematic = true;
+
+            hasHit = true;
         }
 
-        
+
     }
 
 
 
 
-
-
+    //An Area under the Seal, makes it impossible for the harpoon to be thrown down
     private void OnTriggerEnter2D(Collider2D area)
     {
         if (area.gameObject.transform.CompareTag("InvalidArea"))
-        {
             isInvalidArea = true;
-        }
     }
 
     private void OnTriggerExit2D(Collider2D area)
     {
         if (area.gameObject.transform.CompareTag("InvalidArea"))
-        {
             isInvalidArea = false;
-        }
     }
 }
