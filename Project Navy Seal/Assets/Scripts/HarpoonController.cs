@@ -6,9 +6,15 @@ using UnityEngine.UIElements;
 
 public class HarpoonController : MonoBehaviour
 {
+    [System.NonSerialized] public bool chargeHarpoon;
+    [System.NonSerialized] public bool throwHarpoon;
+    [System.NonSerialized] public bool recoverHarpoon;
+
+
+    //Variables
     public float force;
     public float maxForce;
-
+    public float chargeTime;
     [System.NonSerialized] public bool hasHit;
     [System.NonSerialized] public bool isInHand = true;
     [System.NonSerialized] public bool isAirborne;
@@ -21,6 +27,7 @@ public class HarpoonController : MonoBehaviour
     [System.NonSerialized] public Rigidbody2D myRigidbody;
 
     private GameObject seal;
+    private SealMovement sealScript;
     public LineRenderer ropePrefab;
 
     private void Start()
@@ -29,18 +36,90 @@ public class HarpoonController : MonoBehaviour
 
         myRigidbody = GetComponent<Rigidbody2D>();
         seal = GameObject.FindGameObjectWithTag("Seal");
+        sealScript = seal.GetComponent<SealMovement>();
     }
 
     private void Update()
     {
         Rotate_Harpoon();
+        Charge_Harpoon();
+        Throw_Harpoon();
+        Recover_Harpoon();
+
         Airborne();
 
         //Draw Rope
         ropePrefab.SetPosition(0, transform.position);
-        ropePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.2f, seal.transform.position.y));
+        ropePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.1f, seal.transform.position.y));
     }
 
+
+    //Hold down Throw button to build up force
+    private void Charge_Harpoon()
+    {
+        if (chargeHarpoon)
+        {
+
+            if (isInHand && !isInvalidArea && sealScript.isGrounded)
+            {
+                myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
+
+                if (force < maxForce)
+                {
+                    isChargingThrow = true;
+
+                    //Builds up Force over time
+                    force += Mathf.Lerp(0f, maxForce, chargeTime * Time.deltaTime);
+
+                    transform.position = Vector3.Lerp(transform.localPosition, startPosition - transform.right / 2.5f, chargeTime * Time.deltaTime);
+                }
+
+            }
+        }
+
+    }
+
+    //Release Throw button to throw the harpoon with the force that you've built up
+    private void Throw_Harpoon()
+    {
+        if (throwHarpoon)
+        {
+
+            if (isInHand && !isInvalidArea && sealScript.isGrounded)
+            {
+
+                isChargingThrow = false;
+                isInHand = false;
+                isAirborne = true;
+
+                //Calculate Force
+                myRigidbody.AddForce(transform.right * force);
+                myRigidbody.gravityScale = 0.6f;
+            }
+        }
+
+    }
+
+    private void Recover_Harpoon()
+    {
+        if(recoverHarpoon)
+        {
+
+            if (!isInHand)
+            {
+                isInHand = true;
+                sealScript.squish = false;
+
+                startPosition = transform.position;
+
+                force = 0f;
+                ropePrefab.enabled = true;
+                myRigidbody.isKinematic = false;
+                myRigidbody.gravityScale = 0f;
+
+            }
+        }
+    }
 
 
     //When harpoon is in hand, it will rotate in the direction of the mouse position
@@ -54,7 +133,6 @@ public class HarpoonController : MonoBehaviour
 
             //Get the screen position of the object
             Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
-
             //Get the screen position of the mouse
             Vector2 mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
 

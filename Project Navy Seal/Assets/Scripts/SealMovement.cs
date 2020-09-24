@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SealMovement : MonoBehaviour
 {
+    [NonSerialized] public bool moving;
+    [NonSerialized] public float horizontal;
+    [NonSerialized] public bool squish;
+
     public float pullForce;
     public float moveSpeed;
 
@@ -12,6 +17,7 @@ public class SealMovement : MonoBehaviour
     private GameObject harpoon;
     private HarpoonController harpoonScript;
     public Rigidbody2D myRigidbody;
+    private Animator myAnimator;
 
 
     private void Start()
@@ -20,15 +26,18 @@ public class SealMovement : MonoBehaviour
         harpoonScript = harpoon.GetComponent<HarpoonController>();
 
         myRigidbody = GetComponent<Rigidbody2D>();
+        myAnimator = GetComponent<Animator>();
     }
 
 
     private void Update()
     {
         Harpoon_Pull();
+
+        Movement();
         Turn_Around();
 
-
+        Animation();
     }
 
     
@@ -42,11 +51,30 @@ public class SealMovement : MonoBehaviour
             Vector2 directionForce = (harpoon.transform.position - transform.position).normalized;
 
             if(distance > 1.5)
+            {
                 myRigidbody.AddForce(directionForce * pullForce, ForceMode2D.Impulse);
+                squish = true;
+            }
 
             harpoonScript.hasHit = false;
         }
     }
+
+
+
+    private void Movement()
+    {
+        if(horizontal != 0)
+        {
+            if (!harpoonScript.isChargingThrow && harpoonScript.isInHand && isGrounded)
+            {
+                myRigidbody.velocity = new Vector2(moveSpeed * horizontal, myRigidbody.velocity.y);
+
+            }
+        }
+        
+    }
+
 
     //Flips the sprite in the direction the harpoon is aiming
     private void Turn_Around()
@@ -62,6 +90,7 @@ public class SealMovement : MonoBehaviour
 
 
 
+
     //Check if Seal is touching the ground
     private void OnCollisionStay2D(Collision2D ground)
     {
@@ -72,9 +101,10 @@ public class SealMovement : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D ground)
     {
-        if (ground.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        if (ground.gameObject.layer == LayerMask.NameToLayer("Ground") && ground.transform.position.y < transform.position.y)
         {
             myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
+            squish = false;
         }
     }
 
@@ -84,4 +114,11 @@ public class SealMovement : MonoBehaviour
             isGrounded = false;
     }
 
+
+
+
+    private void Animation()
+    {
+        myAnimator.SetBool("Squish", squish);
+    }
 }
