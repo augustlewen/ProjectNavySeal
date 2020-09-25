@@ -14,7 +14,6 @@ public class EnemySpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        spawnCountdown = spawnCooldown;
 
         GameObject seal = GameObject.FindGameObjectWithTag("Seal");
         if(transform.position.x < seal.transform.position.x)

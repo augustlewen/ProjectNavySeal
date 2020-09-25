@@ -23,12 +23,16 @@ public class HarpoonController : MonoBehaviour
 
     [System.NonSerialized] public Vector3 startPosition;
     [System.NonSerialized] public Vector2 direction;
+    private Vector2 positionOnScreen;
+    private Vector2 mouseOnScreen;
 
     [System.NonSerialized] public Rigidbody2D myRigidbody;
-
     private GameObject seal;
     private SealMovement sealScript;
-    public LineRenderer ropePrefab;
+    public GameObject iceParticlePrefab;
+    private AudioSource impactSound; 
+
+    
 
     private void Start()
     {
@@ -37,6 +41,7 @@ public class HarpoonController : MonoBehaviour
         myRigidbody = GetComponent<Rigidbody2D>();
         seal = GameObject.FindGameObjectWithTag("Seal");
         sealScript = seal.GetComponent<SealMovement>();
+        impactSound = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -48,9 +53,12 @@ public class HarpoonController : MonoBehaviour
 
         Airborne();
 
-        //Draw Rope
-        ropePrefab.SetPosition(0, transform.position);
-        ropePrefab.SetPosition(1, new Vector2(seal.transform.position.x - 0.1f, seal.transform.position.y));
+
+        //Get Mouse position
+        positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
+        mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
+
+       
     }
 
 
@@ -59,11 +67,10 @@ public class HarpoonController : MonoBehaviour
     {
         if (chargeHarpoon)
         {
+            sealScript.myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
 
             if (isInHand && !isInvalidArea && sealScript.isGrounded)
             {
-                myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
-
                 if (force < maxForce)
                 {
                     isChargingThrow = true;
@@ -79,32 +86,33 @@ public class HarpoonController : MonoBehaviour
 
     }
 
+
+
     //Release Throw button to throw the harpoon with the force that you've built up
     private void Throw_Harpoon()
     {
         if (throwHarpoon)
         {
-
             if (isInHand && !isInvalidArea && sealScript.isGrounded)
             {
-
+                isAirborne = true;
                 isChargingThrow = false;
                 isInHand = false;
-                isAirborne = true;
 
                 //Calculate Force
                 myRigidbody.AddForce(transform.right * force);
                 myRigidbody.gravityScale = 0.6f;
+
             }
         }
 
     }
 
+    //Get the Harpoon to return to you after it's been thrown
     private void Recover_Harpoon()
     {
         if(recoverHarpoon)
         {
-
             if (!isInHand)
             {
                 isInHand = true;
@@ -113,41 +121,29 @@ public class HarpoonController : MonoBehaviour
                 startPosition = transform.position;
 
                 force = 0f;
-                ropePrefab.enabled = true;
                 myRigidbody.isKinematic = false;
                 myRigidbody.gravityScale = 0f;
-
             }
         }
     }
 
 
-    //When harpoon is in hand, it will rotate in the direction of the mouse position
-    private void Rotate_Harpoon()
-    {
-        if (isInHand && !isChargingThrow)
-        {
-            transform.position = new Vector2(seal.transform.position.x + 0.05f, seal.transform.position.y - 0.13f);
-            startPosition = transform.position;
-
-
-            //Get the screen position of the object
-            Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
-            //Get the screen position of the mouse
-            Vector2 mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
-
-            direction = mouseOnScreen - positionOnScreen;
-            transform.right = direction;
-        }
-    }
 
     //Change the Angle of the harpoon while airborne
     private void Airborne()
     {
         if(isAirborne)
         {
-            //Get Angle of harpoon based on it's current direction
-            direction = myRigidbody.velocity;
+            if(myRigidbody.velocity.magnitude > 0.0001f)
+            {
+                //Get Angle of harpoon based on it's current direction
+                direction = myRigidbody.velocity;
+            }
+            else //This is to fix the bug where the harpoon gets stuck in the wall at the very first frame of throwing
+            {
+                direction = (mouseOnScreen - positionOnScreen).normalized;
+            }
+
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
@@ -155,12 +151,18 @@ public class HarpoonController : MonoBehaviour
 
 
 
+
     //When the harpoon hits the wall, it sticks
     void OnCollisionEnter2D(Collision2D wall)
     {
+
         if (!isInHand && wall.gameObject.transform.CompareTag("Wall"))
         {
             isAirborne = false;
+            impactSound.Play(0);
+
+            GameObject ice = Instantiate(iceParticlePrefab, wall.contacts[0].point, Quaternion.Euler(direction));
+            Destroy(ice, 1f);
 
             //Stop Harpoon movement
             myRigidbody.velocity = Vector2.zero;
@@ -169,11 +171,25 @@ public class HarpoonController : MonoBehaviour
             hasHit = true;
         }
 
-
     }
 
 
 
+
+    //When harpoon is in hand, it will rotate in the direction of the mouse position
+    private void Rotate_Harpoon()
+    {
+        if (isInHand && !isChargingThrow)
+        {
+            //Put harpoon in the position of the seal
+            transform.position = new Vector2(seal.transform.position.x + sealScript.harpoonOffset, seal.transform.position.y - 0.13f);
+            startPosition = transform.position;
+
+            //Rotate in the direction of the mouse position
+            direction = (mouseOnScreen - positionOnScreen).normalized;
+            transform.right = direction;
+        }
+    }
 
     //An Area under the Seal, makes it impossible for the harpoon to be thrown down
     private void OnTriggerEnter2D(Collider2D area)
