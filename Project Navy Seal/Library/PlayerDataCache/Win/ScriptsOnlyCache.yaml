@@ -20,18 +20,13 @@ ScriptsOnlyBuild:
     UnityEditor.Graphs.dll:
     - UnityEditor.Graphs.AnimationBlendTree.Graph
     - UnityEditor.Graphs.AnimationBlendTree.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.AnyStateNode
     - UnityEditor.Graphs.AnimationStateMachine.Graph
     - UnityEditor.Graphs.AnimationStateMachine.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.StateNode
     - UnityEditor.Graphs.AnimatorControllerTool
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
     - UnityEditor.TestTools.TestRunner.TestListCacheData
     - UnityEditor.TestTools.TestRunner.TestRun.TestJobDataHolder
-    UnityEngine.UI.dll:
-    - UnityEngine.EventSystems.EventSystem
-    - UnityEngine.EventSystems.StandaloneInputModule
   sceneClasses:
     Assets/Scenes/SampleScene.unity:
     - Class: 1
@@ -69,21 +64,17 @@ ScriptsOnlyBuild:
     - Class: 104
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 11860}
+      Script: {instanceID: 11862}
     - Class: 114
-      Script: {instanceID: 12206}
+      Script: {instanceID: 12208}
     - Class: 114
-      Script: {instanceID: 12812}
+      Script: {instanceID: 13114}
     - Class: 114
-      Script: {instanceID: 13112}
+      Script: {instanceID: 13712}
     - Class: 114
-      Script: {instanceID: 13710}
+      Script: {instanceID: 14892}
     - Class: 114
-      Script: {instanceID: 14890}
-    - Class: 114
-      Script: {instanceID: 14982}
-    - Class: 114
-      Script: {instanceID: 15046}
+      Script: {instanceID: 14984}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 120
@@ -403,7 +394,7 @@ ScriptsOnlyBuild:
     className: RawImage
   - hash:
       serializedVersion: 2
-      Hash: 641d19e09a1d73b334766e4a4184761b
+      Hash: 940820aed6ea2fe04c5ae67d920266ca
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: SealMovement
@@ -620,5 +611,5 @@ ScriptsOnlyBuild:
   platform: 5
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
-  playerPath: C:/Users/August/Desktop/My Game Projects/The Navy Seal [Complete Game]/Project
-    Navy Seal.exe
+  playerPath: C:/Users/August/Desktop/My Game Projects/The Navy Seal [The Complete
+    Version]/Project Navy Seal.exe
