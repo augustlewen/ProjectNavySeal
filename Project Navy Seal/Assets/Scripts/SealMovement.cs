@@ -21,6 +21,11 @@ public class SealMovement : MonoBehaviour
     private HarpoonController harpoonScript;
     public LineRenderer ropePrefab;
 
+    public GameObject bubblePrefab;
+    private GameObject bubbles;
+    public int bubbleAmount;
+    private int bubblesToCreate;
+    private float bubbleCountdown = 0;
 
     private void Start()
     {
@@ -40,6 +45,28 @@ public class SealMovement : MonoBehaviour
         Turn_Around();
 
         Animation();
+
+        if(myRigidbody.velocity.magnitude > 1 && !isGrounded)
+        {
+            if (bubbleCountdown <= 0)
+            {
+                Invoke("Create_Bubbles", 0.05f);
+                bubbleCountdown = 0.05f;
+            }
+            else
+                bubbleCountdown -= Time.deltaTime;
+           
+        }
+    }
+
+    private void Create_Bubbles()
+    {
+        bubbles = Instantiate(bubblePrefab, transform.position, Quaternion.Euler(new Vector3(-90f + harpoonScript.direction.x, -90f, harpoonScript.direction.y)));
+
+        Vector2 direction = myRigidbody.velocity;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        bubbles.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
 
     
@@ -56,6 +83,7 @@ public class SealMovement : MonoBehaviour
             {
                 myRigidbody.AddForce(directionForce * pullForce, ForceMode2D.Impulse);
                 squish = true;
+                bubblesToCreate = bubbleAmount;
             }
 
             harpoonScript.hasHit = false;
@@ -120,6 +148,7 @@ public class SealMovement : MonoBehaviour
         {
             myRigidbody.velocity = new Vector2(0f, myRigidbody.velocity.y);
             squish = false;
+
         }
     }
 
